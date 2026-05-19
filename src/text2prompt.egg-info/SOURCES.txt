@@ -1,0 +1,11 @@
+README.md
+pyproject.toml
+src/text2prompt/__init__.py
+src/text2prompt/__main__.py
+src/text2prompt.egg-info/PKG-INFO
+src/text2prompt.egg-info/SOURCES.txt
+src/text2prompt.egg-info/dependency_links.txt
+src/text2prompt.egg-info/entry_points.txt
+src/text2prompt.egg-info/requires.txt
+src/text2prompt.egg-info/top_level.txt
+tests/test_config.py
