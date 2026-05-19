@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "🍎 Installing Apple Intelligence Prompt Enhancer..."
+echo "🍎 Installing text2prompt - On-Device Prompt Builder..."
 
 # 1. Check OS and Architecture
 if [[ $(uname -m) != "arm64" ]]; then
@@ -11,27 +11,22 @@ fi
 
 mac_version=$(sw_vers -productVersion)
 major_version=$(echo "$mac_version" | cut -d. -f1)
-minor_version=$(echo "$mac_version" | cut -d. -f2)
 
-if [ "$major_version" -lt 15 ] || ([ "$major_version" -eq 15 ] && [ "$minor_version" -lt 1 ]); then
-    echo "❌ Error: This tool requires macOS 15.1+ (Sequoia) with Apple Intelligence."
+if [ "$major_version" -lt 26 ]; then
+    echo "❌ Error: This tool requires macOS 26.0+ (Tahoe) with Apple Intelligence."
     exit 1
 fi
 
 # 2. Setup Directory
-INSTALL_DIR="$HOME/.apple_enhancer"
+INSTALL_DIR="$HOME/.text2prompt"
 mkdir -p "$INSTALL_DIR"
 
 echo "📦 Setting up Python virtual environment..."
 $(command -v python3) -m venv "$INSTALL_DIR/venv"
 source "$INSTALL_DIR/venv/bin/activate"
 
-echo "⬇️ Installing dependencies..."
-pip install --quiet apple-fm-sdk pyperclip pyobjc
-
-echo "⬇️ Downloading Python script..."
-curl -sSL "https://raw.githubusercontent.com/YOUR_USERNAME/apple-prompt-enhancer/main/apple_enhancer.py" -o "$INSTALL_DIR/apple_enhancer.py"
-chmod +x "$INSTALL_DIR/apple_enhancer.py"
+echo "⬇️ Installing package..."
+pip install --quiet -e "$PWD"
 
 echo "⚙️ Setting up macOS Quick Action..."
 SERVICES_DIR="$HOME/Library/Services"
@@ -102,7 +97,7 @@ cat << 'EOF' > "$CONTENTS_DIR/document.wflow"
 				<key>ActionParameters</key>
 				<dict>
 					<key>COMMAND_STRING</key>
-					<string>TARGET_PYTHON_EXECUTABLE TARGET_SCRIPT_PATH "$@"</string>
+					<string>TARGET_PYTHON_EXECUTABLE -m text2prompt "$@"</string>
 					<key>CheckedForUserDefaultShell</key>
 					<true/>
 					<key>inputMethod</key>
@@ -258,7 +253,6 @@ EOF
 
 # Inject the dynamic paths
 sed -i '' "s|TARGET_PYTHON_EXECUTABLE|$INSTALL_DIR/venv/bin/python3|g" "$CONTENTS_DIR/document.wflow"
-sed -i '' "s|TARGET_SCRIPT_PATH|$INSTALL_DIR/apple_enhancer.py|g" "$CONTENTS_DIR/document.wflow"
 
 # Generate Info.plist
 cat << 'EOF' > "$CONTENTS_DIR/Info.plist"
@@ -289,11 +283,11 @@ echo "✅ Installation Complete!"
 echo ""
 echo "💻 Setting up CLI shortcut..."
 mkdir -p "$HOME/.local/bin"
-cat << 'EOF' > "$HOME/.local/bin/enhance"
+cat << 'EOF' > "$HOME/.local/bin/text2prompt"
 #!/bin/bash
-"$HOME/.apple_enhancer/venv/bin/python3" "$HOME/.apple_enhancer/apple_enhancer.py" "$@"
+"$HOME/.text2prompt/venv/bin/python" -m text2prompt "$@"
 EOF
-chmod +x "$HOME/.local/bin/enhance"
+chmod +x "$HOME/.local/bin/text2prompt"
 
 echo "🎉 You can now use 'Enhance Prompt' anywhere:"
 echo "1. Highlight some text (e.g. 'a cat drinking coffee')"
@@ -302,4 +296,11 @@ echo "3. Click Replace to auto-paste!"
 echo ""
 echo "🚀 Or from the terminal:"
 echo "Make sure ~/.local/bin is in your PATH. Then type:"
-echo 'enhance "my text to turn into a prompt"'
+echo 'text2prompt "my text to turn into a prompt"'
+echo ""
+echo "📋 Available modes:"
+echo "  text2prompt 'some text'              # General prompt"
+echo "  text2prompt --image 'a sunset'       # Image generation"
+echo "  text2prompt --code 'explain this'    # Code assistance"
+echo "  text2prompt --creative 'write poem'  # Creative writing"
+echo "  text2prompt --analysis 'analyze'     # Analysis"
