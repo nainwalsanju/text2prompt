@@ -1,19 +1,22 @@
-# 🍎 text2prompt
+# 🍎 text2prompt v2.0
 
 A blazing-fast, privacy-first, on-device prompt builder for macOS powered by Apple Intelligence.
 
 Transform short descriptions into highly detailed, expertly crafted prompts for AI generation — entirely on your Mac, with zero data leaving your machine.
 
+**Released May 20, 2026**
+
 ---
 
 ## ✨ Features
 
+- **Menu Bar App** - Always accessible, native macOS experience with sparkles icon
 - **5 Prompt Modes:** General, Image Generation, Code Assistance, Creative Writing, and Analysis
-- **Native macOS Feel:** Beautiful borderless window with frosted-glass (`NSVisualEffectView`) and dark mode support
+- **Native macOS Feel:** Beautiful popover with frosted-glass (`NSVisualEffectView`) and dark mode support
 - **100% Local Processing:** Powered by Apple's on-device Foundation Models SDK — runs on Neural Engine
 - **Contextual Memory:** Maintains per-app context history using SQLite
 - **Instant Injection:** Replace selected text natively in any app
-- **CLI + Quick Action:** Use from terminal or system-wide via right-click
+- **CLI + Menu Bar:** Use from terminal or click the menu bar icon
 
 No API keys, no internet connection required, and zero data leaves your machine.
 
@@ -41,19 +44,19 @@ curl -sSL https://raw.githubusercontent.com/YOUR_USERNAME/text2prompt/main/insta
 ### What the installer does:
 1. Creates isolated Python virtual environment at `~/.text2prompt/`
 2. Installs the package with all dependencies
-3. Generates a native macOS Quick Action in `~/Library/Services/`
-4. Sets up CLI command `text2prompt` in `~/.local/bin/`
+3. Sets up CLI command `text2prompt` in `~/.local/bin/`
 
 ---
 
 ## 🪄 How to Use
 
-### Via Quick Action (System-Wide)
+### Via Menu Bar
 
-1. **Highlight** text in any app
-2. **Right-click** → **Services** → **Enhance Prompt**
-3. A beautiful popup appears with your enhanced prompt
-4. Click **Replace** to swap text, or **Copy** to clipboard
+1. Click the **sparkles icon** in your menu bar
+2. Type your idea in the input field
+3. Select a mode (General, Image, Code, Creative, Analysis)
+4. Click **Generate**
+5. Click **Replace** to swap text, or **Copy** to clipboard
 
 ### Via CLI
 
@@ -73,12 +76,6 @@ text2prompt --creative "write a poem about rain"
 # Analysis
 text2prompt --analysis "analyze this data"
 ```
-
-### Keyboard Shortcut
-
-1. **System Settings** → **Keyboard** → **Keyboard Shortcuts** → **Services**
-2. Find **Enhance Prompt** under **Text**
-3. Assign a shortcut (e.g., `Cmd + Shift + E`)
 
 ---
 
@@ -126,6 +123,9 @@ python -m text2prompt "test prompt"
 src/text2prompt/
 ├── app.py              # Main application
 ├── config.py           # Configuration
+├── menu/               # Menu bar components
+│   ├── statusbar.py    # NSStatusBar + menu
+│   └── popover.py      # Popover UI
 ├── engine/             # AI engine
 │   ├── model.py        # apple-fm-sdk wrapper
 │   └── templates.py    # Template registry
