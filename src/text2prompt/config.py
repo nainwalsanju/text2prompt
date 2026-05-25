@@ -39,17 +39,31 @@ def get_config(
     launch_at_login: bool | None = None,
 ) -> Config:
     """Get application configuration with optional overrides."""
-    config = Config(
-        db_path=db_path or DEFAULT_DB_PATH,
-        prefs_path=prefs_path or DEFAULT_PREFS_PATH,
-        max_history=max_history if max_history is not None else 100,
-        streaming_enabled=streaming_enabled if streaming_enabled is not None else True,
-        default_mode=default_mode or "general",
-        auto_copy=auto_copy if auto_copy is not None else False,
-        include_context=include_context if include_context is not None else True,
-        save_history=save_history if save_history is not None else True,
-        launch_at_login=launch_at_login if launch_at_login is not None else False,
-    )
+    config = Config()
+
+    # Apply overrides
+    if db_path is not None:
+        config.db_path = db_path
+    if prefs_path is not None:
+        config.prefs_path = prefs_path
+    if max_history is not None:
+        config.max_history = max_history
+    if streaming_enabled is not None:
+        config.streaming_enabled = streaming_enabled
+    if default_mode is not None:
+        config.default_mode = default_mode
+    if auto_copy is not None:
+        config.auto_copy = auto_copy
+    if include_context is not None:
+        config.include_context = include_context
+    if save_history is not None:
+        config.save_history = save_history
+    if launch_at_login is not None:
+        config.launch_at_login = launch_at_login
+
+    # Ensure directories exist
+    config.ensure_db_dir()
+
     # Try to load saved preferences
     _load_saved_config(config)
     return config

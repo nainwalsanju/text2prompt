@@ -2,6 +2,7 @@
 
 from text2prompt.ui.styles import (
     BUTTON_HEIGHT,
+    BUTTON_WIDTH,
     MARGIN,
     STATUS_HEIGHT,
     WINDOW_HEIGHT,

@@ -74,4 +74,17 @@ def test_history_limit(db):
     for i in range(15):
         save_interaction(db, "ctx", f"input{i}", f"output{i}")
     history = get_history(db, "ctx")
-    assert len(history) <= 10
+    assert len(history) == 10
+
+
+def test_history_limit_keeps_newest(db):
+    """History trimming should keep the most recent entries."""
+    for i in range(12):
+        save_interaction(db, "ctx", f"input{i}", f"output{i}")
+    history = get_history(db, "ctx")
+    # Trimming keeps the 10 newest entries (last 5 interactions).
+    # get_history returns them in ASC order, so first item is
+    # the oldest of the kept entries (input7, id 15).
+    assert history[0][1] == "input7"
+    # Last item should be the newest assistant message.
+    assert history[-1][1] == "output11"

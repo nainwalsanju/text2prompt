@@ -108,7 +108,8 @@ class HistoryWindow(NSObject):
         try:
             cursor = self.conn.cursor()
             cursor.execute(
-                "SELECT context_id, input_text, output_text, created_at FROM interactions ORDER BY created_at DESC"
+                "SELECT context_id, role, content, timestamp "
+                "FROM chat_history WHERE role = 'user' ORDER BY timestamp DESC"
             )
             self.history_data = cursor.fetchall()
         except Exception:
@@ -135,9 +136,10 @@ class HistoryWindow(NSObject):
             mode = context.split(":")[-1] if ":" in context else context
             text = mode.capitalize()
         elif col_id == "input":
-            text = (item[1][:50] + "...") if len(item[1]) > 50 else item[1]
+            content = item[2]
+            text = (content[:50] + "...") if len(content) > 50 else content
         elif col_id == "output":
-            text = (item[2][:50] + "...") if len(item[2]) > 50 else item[2]
+            text = ""
         else:
             text = ""
 
@@ -149,13 +151,13 @@ class HistoryWindow(NSObject):
         return cell
 
     def copySelected_(self, sender):
-        """Copy selected row's output to clipboard."""
+        """Copy selected row's content to clipboard."""
         row = self.table_view.selectedRow()
         if row < 0 or row >= len(self.history_data):
             return
 
-        output = self.history_data[row][2]
-        pyperclip.copy(output)
+        content = self.history_data[row][2]
+        pyperclip.copy(content)
 
     def clearAll_(self, sender):
         """Clear all history."""
@@ -173,7 +175,7 @@ class HistoryWindow(NSObject):
         if response == NSAlertFirstButtonReturn:
             try:
                 cursor = self.conn.cursor()
-                cursor.execute("DELETE FROM interactions")
+                cursor.execute("DELETE FROM chat_history")
                 self.conn.commit()
                 self._load_history()
             except Exception as e:

@@ -25,10 +25,10 @@ class HotkeyMonitor(NSObject):
             return event
 
         if (
-            event.type() == NSKeyDown
+            event.type() == NSEventTypeKeyDown
             and event.keyCode() == 49
-            and event.modifierFlags() & NSCommandKeyMask
-            and event.modifierFlags() & NSShiftKeyMask
+            and event.modifierFlags() & NSEventModifierFlagCommand
+            and event.modifierFlags() & NSEventModifierFlagShift
         ):
             if self.delegate and hasattr(self.delegate, "on_hotkey_pressed"):
                 self.delegate.on_hotkey_pressed()
@@ -60,11 +60,11 @@ class HotkeyManager(NSObject):
         self._monitor_obj.setDelegate_(self.delegate)
 
         self.monitor = NSEvent.addGlobalMonitorForEventsMatchingMask_handler_(
-            NSKeyDownMask, self._monitor_obj.monitorEvent_
+            NSEventMaskKeyDown, self._monitor_obj.monitorEvent_
         )
 
         self.local_monitor = NSEvent.addLocalMonitorForEventsMatchingMask_handler_(
-            NSKeyDownMask, self._monitor_obj.monitorEvent_
+            NSEventMaskKeyDown, self._monitor_obj.monitorEvent_
         )
 
     def stop_monitoring(self):

@@ -1,5 +1,7 @@
 """Apple Foundation Models SDK wrapper."""
 
+import asyncio
+import concurrent.futures
 
 try:
     import apple_fm_sdk as fm
@@ -55,23 +57,23 @@ class ModelEngine:
         if self._model is None:
             self._model = fm.SystemLanguageModel()
 
-        try:
-            session = fm.LanguageModelSession(model=self._model)
-            # respond() is async, run it in event loop
-            import asyncio
+        session = fm.LanguageModelSession(model=self._model)
 
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            # No running loop — straightforward case
             try:
-                loop = asyncio.get_running_loop()
-            except RuntimeError:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                response = loop.run_until_complete(session.respond(prompt))
-                loop.close()
-            else:
-                # Already in running loop, create new one
-                new_loop = asyncio.new_event_loop()
-                response = new_loop.run_until_complete(session.respond(prompt))
-                new_loop.close()
-            return response.strip()
-        except Exception as e:
-            raise ModelError(str(e)) from e
+                response = asyncio.run(session.respond(prompt))
+            except Exception as e:
+                raise ModelError(str(e)) from e
+        else:
+            # Already in a running loop — run in separate thread to avoid
+            # "This event loop is already running" errors.
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                try:
+                    response = pool.submit(asyncio.run, session.respond(prompt)).result()
+                except Exception as e:
+                    raise ModelError(str(e)) from e
+
+        return response.strip()

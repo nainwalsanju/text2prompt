@@ -54,6 +54,13 @@ class AppDelegate(NSObject):
         if args:
             self._handle_cli_args(args)
 
+    def applicationWillTerminate_(self, notification):
+        """Clean up resources on quit."""
+        if self.hotkey_manager:
+            self.hotkey_manager.stop_monitoring()
+        if self.conn:
+            self.conn.close()
+
     def _handle_cli_args(self, args):
         """Handle command-line arguments."""
         mode, text = parse_mode_and_text(args)

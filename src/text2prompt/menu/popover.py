@@ -232,12 +232,8 @@ class PromptWindow(NSObject):
         self.status_label.setStringValue_("Copied to clipboard!")
         self.window.close()
 
-    def handleReplace_(self, sender):
-        """Replace selected text."""
-        pyperclip.copy(self.enhanced_text)
-        self.window.close()
-        time.sleep(0.1)
-
+    def _send_paste_(self, timer):
+        """Send Cmd+V via AppleScript after window closes."""
         script = """
         tell application "System Events"
             keystroke "v" using command down
@@ -247,6 +243,17 @@ class PromptWindow(NSObject):
             subprocess.run(["osascript", "-e", script], check=True, capture_output=True)
         except subprocess.CalledProcessError:
             pass
+
+    def handleReplace_(self, sender):
+        """Replace selected text."""
+        pyperclip.copy(self.enhanced_text)
+        self.window.close()
+
+        # Send paste after a short delay so the window has closed
+        # and focus returns to the previous app.
+        NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
+            0.15, self, "_send_paste:", None, False
+        )
 
     def handleHistory_(self, sender):
         """Show history."""

@@ -111,10 +111,10 @@ class PreferencesWindow(NSObject):
             self.mode_popup.selectItemWithTitle_(default_mode.capitalize())
 
         # Set checkboxes
-        self.autocopy_checkbox.setState_(NSOnState if self.config.auto_copy else NSOffState)
-        self.context_checkbox.setState_(NSOnState if self.config.include_context else NSOffState)
-        self.history_checkbox.setState_(NSOnState if self.config.save_history else NSOffState)
-        self.login_checkbox.setState_(NSOnState if self.config.launch_at_login else NSOffState)
+        self.autocopy_checkbox.setState_(NSControlStateValueOn if self.config.auto_copy else NSControlStateValueOff)
+        self.context_checkbox.setState_(NSControlStateValueOn if self.config.include_context else NSControlStateValueOff)
+        self.history_checkbox.setState_(NSControlStateValueOn if self.config.save_history else NSControlStateValueOff)
+        self.login_checkbox.setState_(NSControlStateValueOn if self.config.launch_at_login else NSControlStateValueOff)
 
     def savePreferences_(self, sender):
         """Save preferences."""
@@ -128,10 +128,10 @@ class PreferencesWindow(NSObject):
         self.config.default_mode = mode_map.get(mode_title, "general")
 
         # Get checkboxes
-        self.config.auto_copy = self.autocopy_checkbox.state() == NSOnState
-        self.config.include_context = self.context_checkbox.state() == NSOnState
-        self.config.save_history = self.history_checkbox.state() == NSOnState
-        self.config.launch_at_login = self.login_checkbox.state() == NSOnState
+        self.config.auto_copy = self.autocopy_checkbox.state() == NSControlStateValueOn
+        self.config.include_context = self.context_checkbox.state() == NSControlStateValueOn
+        self.config.save_history = self.history_checkbox.state() == NSControlStateValueOn
+        self.config.launch_at_login = self.login_checkbox.state() == NSControlStateValueOn
 
         # Save
         save_config(self.config)
