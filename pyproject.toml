@@ -10,7 +10,7 @@ readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
 authors = [
-    {name = "Your Name", email = "your.email@example.com"}
+    {name = "Sanju Nainwal", email = "sanju@example.com"}
 ]
 keywords = ["apple-intelligence", "prompt-engineering", "macos", "on-device-ai"]
 classifiers = [

@@ -1,4 +1,8 @@
-"""Floating panel window."""
+"""Layout helpers for panel geometry.
+
+These functions are available for reuse but the main popover window
+(currently in menu/popover.py) uses hardcoded frame values.
+"""
 
 from text2prompt.ui.styles import (
     BUTTON_HEIGHT,

@@ -79,7 +79,7 @@ def _load_saved_config(config: Config) -> None:
         for key, value in saved.items():
             if hasattr(config, key):
                 setattr(config, key, value)
-    except Exception:
+    except (json.JSONDecodeError, OSError):
         pass
 
 

@@ -4,27 +4,6 @@ import os
 import sqlite3
 
 
-class Database:
-    """SQLite database connection wrapper."""
-
-    def __init__(self, path: str):
-        self.path = path
-        self._conn: sqlite3.Connection | None = None
-
-    def connect(self) -> sqlite3.Connection:
-        """Get or create database connection."""
-        if self._conn is None:
-            os.makedirs(os.path.dirname(self.path), exist_ok=True)
-            self._conn = sqlite3.connect(self.path, check_same_thread=False)
-        return self._conn
-
-    def close(self) -> None:
-        """Close database connection."""
-        if self._conn:
-            self._conn.close()
-            self._conn = None
-
-
 def init_db(db_path: str) -> sqlite3.Connection:
     """Initialize database and create tables.
 

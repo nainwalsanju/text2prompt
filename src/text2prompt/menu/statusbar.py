@@ -36,8 +36,7 @@ class StatusBarApp(NSObject):
         self.status_item.setToolTip_("text2prompt - AI Prompt Builder")
         self.status_item.setHighlightMode_(True)
 
-        # Do NOT set action/target - we use a custom NSResponder subclass
-        # to intercept both left and right clicks reliably.
+        # Use a custom handler to distinguish left and right clicks.
         self._click_handler = StatusItemHandler.alloc().initWithStatusBar_(self)
         self.status_item.button().setTarget_(self._click_handler)
         self.status_item.button().setAction_("handleClick:")
@@ -107,9 +106,9 @@ class StatusItemHandler(NSObject):
         """Handle click - check event type to distinguish left vs right."""
         event = NSApp.currentEvent()
         if event is not None:
-            if event.type() == NSLeftMouseDown:
+            if event.type() == NSEventTypeLeftMouseDown:
                 self.status_bar._show_popover()
-            elif event.type() == NSRightMouseDown:
+            elif event.type() == NSEventTypeRightMouseDown:
                 self.status_bar.menu.popUpMenuPositioningItem_atLocation_inView_(
                     None, NSEvent.mouseLocation(), None
                 )

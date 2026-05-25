@@ -50,25 +50,26 @@ class HistoryWindow(NSObject):
         self.table_view = NSTableView.alloc().initWithFrame_(NSMakeRect(0, 0, 600, 460))
         self.table_view.setUsesAlternatingRowBackgroundColors_(True)
         self.table_view.setGridStyleMask_(NSTableViewGridSolidHorizontal)
+        self.table_view.setUsesStaticContents_(True)
 
         # Columns
         col1 = NSTableColumn.alloc().initWithIdentifier_("date")
-        col1.setHeaderCell_(NSTableCellCell.alloc().initWithTextCell_("Date"))
+        col1.setHeaderCell_(NSTableHeaderCell.alloc().initWithTextCell_("Date"))
         col1.setWidth_(120)
         self.table_view.addTableColumn_(col1)
 
         col2 = NSTableColumn.alloc().initWithIdentifier_("mode")
-        col2.setHeaderCell_(NSTableCellCell.alloc().initWithTextCell_("Mode"))
+        col2.setHeaderCell_(NSTableHeaderCell.alloc().initWithTextCell_("Mode"))
         col2.setWidth_(80)
         self.table_view.addTableColumn_(col2)
 
         col3 = NSTableColumn.alloc().initWithIdentifier_("input")
-        col3.setHeaderCell_(NSTableCellCell.alloc().initWithTextCell_("Input"))
+        col3.setHeaderCell_(NSTableHeaderCell.alloc().initWithTextCell_("Input"))
         col3.setWidth_(200)
         self.table_view.addTableColumn_(col3)
 
         col4 = NSTableColumn.alloc().initWithIdentifier_("output")
-        col4.setHeaderCell_(NSTableCellCell.alloc().initWithTextCell_("Output"))
+        col4.setHeaderCell_(NSTableHeaderCell.alloc().initWithTextCell_("Output"))
         col4.setWidth_(200)
         self.table_view.addTableColumn_(col4)
 

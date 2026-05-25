@@ -162,14 +162,19 @@ class PreferencesWindow(NSObject):
             if {0} and not found then
                 make login item at end with properties {{path:"{1}", hidden:false}}
             else if not {0} and found then
-                delete login item "{2}"
+                repeat with anItem in loginItems
+                    if name of anItem contains appName then
+                        delete anItem
+                        exit repeat
+                    end if
+                end repeat
             end if
         end tell
-        """.format("true" if enabled else "false", "/Applications/text2prompt.app", "text2prompt")
+        """.format("true" if enabled else "false", "/Applications/text2prompt.app")
 
         try:
             import subprocess
 
             subprocess.run(["osascript", "-e", script], check=True, capture_output=True)
-        except Exception:
+        except (subprocess.CalledProcessError, OSError):
             pass  # Silently fail if permission denied
