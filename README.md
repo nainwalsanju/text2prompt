@@ -21,6 +21,71 @@ You type a short idea. text2prompt transforms it into a detailed, ready-to-paste
 
 ---
 
+## How it works
+
+### User Flow
+
+```mermaid
+flowchart LR
+    A[Type Idea] --> B{Select Mode}
+    B --> C[Apple Neural Engine]
+    C --> D[Polished Prompt]
+    D --> E[Copy or Replace]
+    style C fill:#4CAF50,stroke:#2E7D32,color:#fff
+```
+
+### Architecture
+
+```mermaid
+flowchart TB
+    subgraph UI["Menu Bar App (PyObjC)"]
+        A[Status Bar Icon]
+        B[Popover Window]
+        C[Hotkey Cmd+Shift+Space]
+    end
+
+    subgraph Engine["Prompt Engine"]
+        D[Template Registry]
+        E[apple-fm-sdk]
+    end
+
+    subgraph Memory["Context Memory"]
+        F[(SQLite History)]
+    end
+
+    A --> B
+    C --> B
+    B --> D
+    D --> F
+    F --> D
+    D --> E
+    E --> B
+
+    style E fill:#4CAF50,stroke:#2E7D32,color:#fff
+    style F fill:#2196F3,stroke:#1565C0,color:#fff
+```
+
+### Prompt Generation Pipeline
+
+```mermaid
+flowchart LR
+    A[Raw Input] --> B{Mode Selector}
+    B -->|General| C[Meta-Prompt Engineer]
+    B -->|Image| D[Subject/Style/Camera]
+    B -->|Code| E[Role/Context/Output]
+    B -->|Creative| F[Voice/Setting/Structure]
+    B -->|Analysis| G[Framework/Evidence]
+    C --> H[On-Device LLM]
+    D --> H
+    E --> H
+    F --> H
+    G --> H
+    H --> I[Ready-to-Paste Prompt]
+    style H fill:#4CAF50,stroke:#2E7D32,color:#fff
+```
+
+---
+
 ## Install
 
 ```bash
