@@ -2,8 +2,10 @@
 
 import os
 import tempfile
+
 import pytest
-from text2prompt.memory.db import Database, init_db, get_history, save_interaction, clear_memory
+
+from text2prompt.memory.db import clear_memory, get_history, init_db, save_interaction
 
 
 @pytest.fixture

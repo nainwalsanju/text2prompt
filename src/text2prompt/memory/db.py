@@ -37,7 +37,7 @@ def init_db(db_path: str) -> sqlite3.Connection:
     os.makedirs(os.path.dirname(db_path), exist_ok=True)
     conn = sqlite3.connect(db_path, check_same_thread=False)
     c = conn.cursor()
-    c.execute('''
+    c.execute("""
         CREATE TABLE IF NOT EXISTS chat_history (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             context_id TEXT,
@@ -45,7 +45,7 @@ def init_db(db_path: str) -> sqlite3.Connection:
             content TEXT,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
         )
-    ''')
+    """)
     conn.commit()
     return conn
 
@@ -63,7 +63,7 @@ def get_history(conn: sqlite3.Connection, context_id: str) -> list[tuple[str, st
     c = conn.cursor()
     c.execute(
         "SELECT role, content FROM chat_history WHERE context_id = ? ORDER BY id ASC LIMIT 10",
-        (context_id,)
+        (context_id,),
     )
     return c.fetchall()
 
@@ -85,23 +85,26 @@ def save_interaction(
     c = conn.cursor()
     c.execute(
         "INSERT INTO chat_history (context_id, role, content) VALUES (?, ?, ?)",
-        (context_id, "user", user_text)
+        (context_id, "user", user_text),
     )
     c.execute(
         "INSERT INTO chat_history (context_id, role, content) VALUES (?, ?, ?)",
-        (context_id, "assistant", assistant_text)
+        (context_id, "assistant", assistant_text),
     )
     conn.commit()
 
     # Trim old history, keep last 10 entries
-    c.execute("""
+    c.execute(
+        """
         DELETE FROM chat_history
         WHERE id NOT IN (
             SELECT id FROM chat_history
             WHERE context_id = ?
             ORDER BY id DESC LIMIT 10
         ) AND context_id = ?
-    """, (context_id, context_id))
+    """,
+        (context_id, context_id),
+    )
     conn.commit()
 
 

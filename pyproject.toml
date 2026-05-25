@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "text2prompt"
-version = "1.0.0"
+version = "2.0.0"
 description = "A blazing-fast, privacy-first, on-device prompt builder for macOS powered by Apple Intelligence"
 readme = "README.md"
 license = {text = "MIT"}
@@ -40,6 +40,22 @@ text2prompt = "text2prompt.__main__:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM"]
+# PyObjC requires star imports and Apple delegate naming
+extend-ignore = ["F403", "F405", "N802"]
+# Long lines in template strings are acceptable
+per-file-ignores = {}
+"src/text2prompt/templates/*.py" = ["E501"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

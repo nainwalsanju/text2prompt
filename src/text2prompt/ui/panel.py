@@ -1,12 +1,11 @@
 """Floating panel window."""
 
 from text2prompt.ui.styles import (
-    WINDOW_WIDTH,
-    WINDOW_HEIGHT,
-    CORNER_RADIUS,
-    MARGIN,
     BUTTON_HEIGHT,
+    MARGIN,
     STATUS_HEIGHT,
+    WINDOW_HEIGHT,
+    WINDOW_WIDTH,
 )
 
 

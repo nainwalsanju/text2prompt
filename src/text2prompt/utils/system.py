@@ -21,10 +21,7 @@ def get_active_context() -> str:
     """
     try:
         result = subprocess.run(
-            ['osascript', '-e', script],
-            capture_output=True,
-            text=True,
-            check=True
+            ["osascript", "-e", script], capture_output=True, text=True, check=True
         )
         return result.stdout.strip()
     except Exception:

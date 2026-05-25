@@ -2,7 +2,8 @@
 
 import os
 import tempfile
-from text2prompt.config import Config, DEFAULT_DB_PATH, get_config
+
+from text2prompt.config import DEFAULT_DB_PATH, get_config
 
 
 def test_default_db_path():

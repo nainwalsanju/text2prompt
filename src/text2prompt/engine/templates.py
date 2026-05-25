@@ -1,17 +1,17 @@
 """Prompt template registry."""
 
-from text2prompt.utils.parser import (
-    MODE_GENERAL,
-    MODE_IMAGE,
-    MODE_CODE,
-    MODE_CREATIVE,
-    MODE_ANALYSIS,
-)
-from text2prompt.templates.general import SYSTEM_INSTRUCTION as GENERAL_INSTRUCTION
-from text2prompt.templates.image import SYSTEM_INSTRUCTION as IMAGE_INSTRUCTION
+from text2prompt.templates.analysis import SYSTEM_INSTRUCTION as ANALYSIS_INSTRUCTION
 from text2prompt.templates.code import SYSTEM_INSTRUCTION as CODE_INSTRUCTION
 from text2prompt.templates.creative import SYSTEM_INSTRUCTION as CREATIVE_INSTRUCTION
-from text2prompt.templates.analysis import SYSTEM_INSTRUCTION as ANALYSIS_INSTRUCTION
+from text2prompt.templates.general import SYSTEM_INSTRUCTION as GENERAL_INSTRUCTION
+from text2prompt.templates.image import SYSTEM_INSTRUCTION as IMAGE_INSTRUCTION
+from text2prompt.utils.parser import (
+    MODE_ANALYSIS,
+    MODE_CODE,
+    MODE_CREATIVE,
+    MODE_GENERAL,
+    MODE_IMAGE,
+)
 
 _INSTRUCTIONS = {
     MODE_GENERAL: GENERAL_INSTRUCTION,

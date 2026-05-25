@@ -1,7 +1,13 @@
 """Tests for template system."""
 
-from text2prompt.engine.templates import TemplateRegistry, get_registry
-from text2prompt.utils.parser import MODE_GENERAL, MODE_IMAGE, MODE_CODE, MODE_CREATIVE, MODE_ANALYSIS
+from text2prompt.engine.templates import get_registry
+from text2prompt.utils.parser import (
+    MODE_ANALYSIS,
+    MODE_CODE,
+    MODE_CREATIVE,
+    MODE_GENERAL,
+    MODE_IMAGE,
+)
 
 
 def test_registry_has_all_modes():

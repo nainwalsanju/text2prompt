@@ -1,0 +1,58 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "opencode-go/deepseek-v4-pro",
+  "small_model": "opencode-go/deepseek-v4-flash",
+  "instructions": ["CONTRIBUTING.md", "pyproject.toml"],
+  "formatter": {
+    "ruff": {
+      "command": [".venv/bin/ruff", "format", "$FILE"],
+      "extensions": [".py", ".pyi"]
+    }
+  },
+  "lsp": {
+    "pyright": {
+      "command": [".venv/bin/pyright-langserver", "--stdio"],
+      "extensions": [".py", ".pyi"]
+    }
+  },
+  "permission": {
+    "edit": "allow",
+    "bash": {
+      "git *": "allow",
+      "pytest *": "allow",
+      "ruff *": "allow",
+      "pip *": "allow",
+      "python *": "allow",
+      "source .venv/*": "allow",
+      "*": "ask"
+    }
+  },
+  "command": {
+    "test": {
+      "template": "Run the full test suite: `source .venv/bin/activate && python -m pytest tests/ -v`. Report any failures and suggest fixes.",
+      "description": "Run pytest with verbose output"
+    },
+    "lint": {
+      "template": "Run ruff linter: `source .venv/bin/activate && ruff check src/ tests/`. Fix any issues found.",
+      "description": "Lint Python code with ruff"
+    },
+    "format-check": {
+      "template": "Check formatting: `source .venv/bin/activate && ruff format --check src/ tests/`. Report any unformatted files.",
+      "description": "Check if code is properly formatted"
+    },
+    "build": {
+      "template": "Build the macOS app: `source .venv/bin/activate && python setup.py py2app`. Report build output and any issues.",
+      "description": "Build the macOS .app bundle"
+    },
+    "clean": {
+      "template": "Clean build artifacts: remove `build/`, `dist/`, `.pytest_cache/`, `__pycache__/`, `*.egg-info/` directories.",
+      "description": "Clean build and cache directories"
+    }
+  },
+  "snapshot": true,
+  "autoupdate": "notify",
+  "compaction": {
+    "auto": true,
+    "prune": true
+  }
+}

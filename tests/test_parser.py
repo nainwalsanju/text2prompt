@@ -1,11 +1,11 @@
 """Tests for parser module."""
 
 from text2prompt.utils.parser import (
-    MODE_GENERAL,
-    MODE_IMAGE,
+    MODE_ANALYSIS,
     MODE_CODE,
     MODE_CREATIVE,
-    MODE_ANALYSIS,
+    MODE_GENERAL,
+    MODE_IMAGE,
     VALID_MODES,
     parse_mode_and_text,
 )

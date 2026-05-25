@@ -1,6 +1,7 @@
 """Entry point for text2prompt."""
 
 import sys
+
 from text2prompt.app import run_app
 
 

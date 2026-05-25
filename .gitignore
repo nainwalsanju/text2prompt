@@ -3,3 +3,12 @@ __pycache__/
 *.pyc
 venv/
 .env
+.venv/
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.rtk/
+*.app/
+text2prompt.iconset/

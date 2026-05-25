@@ -1,7 +1,5 @@
 """Apple Foundation Models SDK wrapper."""
 
-import asyncio
-from typing import Optional
 
 try:
     import apple_fm_sdk as fm
@@ -11,6 +9,7 @@ except ImportError:
 
 class ModelError(Exception):
     """Error during model operation."""
+
     pass
 
 
@@ -23,9 +22,11 @@ class ModelEngine:
     def _ensure_sdk_imported(self):
         """Verify SDK is available."""
         if fm is None:
-            raise ModelError("apple-fm-sdk is not installed. Install with: pip install apple-fm-sdk")
+            raise ModelError(
+                "apple-fm-sdk is not installed. Install with: pip install apple-fm-sdk"
+            )
 
-    def check_availability(self) -> tuple[bool, Optional[str]]:
+    def check_availability(self) -> tuple[bool, str | None]:
         """Check if the on-device model is available.
 
         Returns:
@@ -58,6 +59,7 @@ class ModelEngine:
             session = fm.LanguageModelSession(model=self._model)
             # respond() is async, run it in event loop
             import asyncio
+
             try:
                 loop = asyncio.get_running_loop()
             except RuntimeError:
@@ -73,5 +75,3 @@ class ModelEngine:
             return response.strip()
         except Exception as e:
             raise ModelError(str(e)) from e
-
-

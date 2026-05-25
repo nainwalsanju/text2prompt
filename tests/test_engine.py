@@ -1,11 +1,13 @@
 """Tests for engine module."""
 
+from unittest.mock import Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+
 from text2prompt.engine.model import ModelEngine, ModelError
 
 
-@patch('text2prompt.engine.model.fm')
+@patch("text2prompt.engine.model.fm")
 def test_model_engine_init(mock_fm):
     """ModelEngine should initialize without error."""
     mock_model = Mock()
@@ -16,7 +18,7 @@ def test_model_engine_init(mock_fm):
     assert engine is not None
 
 
-@patch('text2prompt.engine.model.fm')
+@patch("text2prompt.engine.model.fm")
 def test_check_availability_available(mock_fm):
     """check_availability should return True when model is available."""
     mock_model = Mock()
@@ -30,7 +32,7 @@ def test_check_availability_available(mock_fm):
     assert reason is None
 
 
-@patch('text2prompt.engine.model.fm')
+@patch("text2prompt.engine.model.fm")
 def test_check_availability_unavailable(mock_fm):
     """check_availability should return False with reason when unavailable."""
     mock_model = Mock()
@@ -44,15 +46,15 @@ def test_check_availability_unavailable(mock_fm):
     assert reason == "Apple Intelligence not enabled"
 
 
-@patch('text2prompt.engine.model.fm')
+@patch("text2prompt.engine.model.fm")
 def test_generate_response(mock_fm):
     """generate_response should return model response."""
     mock_model = Mock()
-    
+
     # Create a mock coroutine that returns the response
     async def mock_respond(prompt):
         return "Enhanced prompt here"
-    
+
     mock_session = Mock()
     mock_session.respond = mock_respond
     mock_fm.SystemLanguageModel.return_value = mock_model
@@ -65,15 +67,15 @@ def test_generate_response(mock_fm):
     mock_fm.LanguageModelSession.assert_called_once()
 
 
-@patch('text2prompt.engine.model.fm')
+@patch("text2prompt.engine.model.fm")
 def test_generate_response_error(mock_fm):
     """generate_response should raise ModelError on failure."""
     mock_model = Mock()
-    
+
     # Create a mock coroutine that raises an exception
     async def mock_respond_error(prompt):
         raise Exception("Model error")
-    
+
     mock_session = Mock()
     mock_session.respond = mock_respond_error
     mock_fm.SystemLanguageModel.return_value = mock_model
