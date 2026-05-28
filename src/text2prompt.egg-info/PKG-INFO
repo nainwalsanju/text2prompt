@@ -1,5 +1,157 @@
 Metadata-Version: 2.4
 Name: text2prompt
-Version: 0.0.0
+Version: 2.0.0
+Summary: A blazing-fast, privacy-first, on-device prompt builder for macOS powered by Apple Intelligence
+Author-email: Sanju Nainwal <sanju@example.com>
+License: MIT
+Keywords: apple-intelligence,prompt-engineering,macos,on-device-ai
+Classifier: Development Status :: 4 - Beta
+Classifier: Environment :: MacOS X
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: Text Processing
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
 License-File: LICENSE
+Requires-Dist: apple-fm-sdk>=0.1.0
+Requires-Dist: pyperclip>=1.8.0
+Requires-Dist: pyobjc>=10.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.21; extra == "dev"
 Dynamic: license-file
+
+# text2prompt
+
+Turn rough ideas into polished AI prompts — right from your menu bar. Zero data leaves your Mac.
+
+<img src="assets/icon_512.png" width="80" />
+
+---
+
+## What it does
+
+You type a short idea. text2prompt transforms it into a detailed, ready-to-paste prompt using Apple's on-device AI. Works in any app via `Cmd+Shift+Space`.
+
+**Five modes, one hotkey:**
+| Mode | For |
+|---|---|
+| General | Anything |
+| Image | AI image prompts |
+| Code | Coding help |
+| Creative | Writing & stories |
+| Analysis | Research & data |
+
+---
+
+## How it works
+
+### User Flow
+
+```mermaid
+flowchart LR
+    A[Type Idea] --> B{Select Mode}
+    B --> C[Apple Neural Engine]
+    C --> D[Polished Prompt]
+    D --> E[Copy or Replace]
+    style C fill:#4CAF50,stroke:#2E7D32,color:#fff
+```
+
+### Architecture
+
+```mermaid
+flowchart TB
+    subgraph UI["Menu Bar App (PyObjC)"]
+        A[Status Bar Icon]
+        B[Popover Window]
+        C[Hotkey Cmd+Shift+Space]
+    end
+
+    subgraph Engine["Prompt Engine"]
+        D[Template Registry]
+        E[apple-fm-sdk]
+    end
+
+    subgraph Memory["Context Memory"]
+        F[(SQLite History)]
+    end
+
+    A --> B
+    C --> B
+    B --> D
+    D --> F
+    F --> D
+    D --> E
+    E --> B
+
+    style E fill:#4CAF50,stroke:#2E7D32,color:#fff
+    style F fill:#2196F3,stroke:#1565C0,color:#fff
+```
+
+### Prompt Generation Pipeline
+
+```mermaid
+flowchart LR
+    A[Raw Input] --> B{Mode Selector}
+    B -->|General| C[Meta-Prompt Engineer]
+    B -->|Image| D[Subject/Style/Camera]
+    B -->|Code| E[Role/Context/Output]
+    B -->|Creative| F[Voice/Setting/Structure]
+    B -->|Analysis| G[Framework/Evidence]
+    C --> H[On-Device LLM]
+    D --> H
+    E --> H
+    F --> H
+    G --> H
+    H --> I[Ready-to-Paste Prompt]
+    style H fill:#4CAF50,stroke:#2E7D32,color:#fff
+```
+
+---
+
+## Install
+
+```bash
+curl -sSL https://raw.githubusercontent.com/nainwalsanju/text2prompt/main/install.sh | bash
+```
+
+Requires: Apple Silicon Mac, macOS 26+
+
+---
+
+## Use
+
+```bash
+# CLI
+text2prompt "a knight in shining armor"
+text2prompt --image "a sunset over mountains"
+text2prompt --code "explain this function"
+
+# Or hit Cmd+Shift+Space anywhere
+```
+
+---
+
+## Why
+
+- **100% local** — runs on Apple Neural Engine, not the cloud
+- **No API keys** — no accounts, no subscriptions
+- **No internet** — works offline
+- **Menu bar app** — always one click away
+
+---
+
+## Dev
+
+```bash
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+pytest tests/ -v
+```
+
+---
+
+[MIT](LICENSE)

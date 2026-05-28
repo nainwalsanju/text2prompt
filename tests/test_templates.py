@@ -7,6 +7,7 @@ from text2prompt.utils.parser import (
     MODE_CREATIVE,
     MODE_GENERAL,
     MODE_IMAGE,
+    MODE_MUSIC,
 )
 
 
@@ -18,6 +19,7 @@ def test_registry_has_all_modes():
     assert MODE_CODE in registry.modes
     assert MODE_CREATIVE in registry.modes
     assert MODE_ANALYSIS in registry.modes
+    assert MODE_MUSIC in registry.modes
 
 
 def test_get_system_instruction_general():
@@ -55,6 +57,13 @@ def test_get_system_instruction_analysis():
     assert len(instruction) > 50
 
 
+def test_get_system_instruction_music():
+    """Music mode should return music-specific instruction."""
+    registry = get_registry()
+    instruction = registry.get_system_instruction(MODE_MUSIC)
+    assert "music" in instruction.lower() or "audio" in instruction.lower()
+
+
 def test_format_prompt_no_history():
     """Format prompt without history should include instruction and input."""
     registry = get_registry()
@@ -80,8 +89,18 @@ def test_format_prompt_invalid_mode():
     assert "test" in result
 
 
+def test_format_prompt_with_custom_rule():
+    """Format prompt should merge the custom guideline at the end."""
+    registry = get_registry()
+    result = registry.format_prompt([], "my theme", MODE_GENERAL, "Always write in French")
+    assert "my theme" in result
+    assert "Always write in French" in result
+    assert "CUSTOM USER RULES" in result
+
+
 def test_registry_singleton():
     """get_registry should return same instance."""
     r1 = get_registry()
     r2 = get_registry()
     assert r1 is r2
+

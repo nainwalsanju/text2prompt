@@ -2,6 +2,12 @@
 
 import os
 import sqlite3
+import threading
+
+# Module-level lock to serialize all database access.
+# Although ``check_same_thread=False`` disables Python's thread-ownership
+# check, SQLite itself is not safe for truly concurrent writes.
+_db_lock = threading.Lock()
 
 
 def init_db(db_path: str) -> sqlite3.Connection:
@@ -15,17 +21,18 @@ def init_db(db_path: str) -> sqlite3.Connection:
     """
     os.makedirs(os.path.dirname(db_path), exist_ok=True)
     conn = sqlite3.connect(db_path, check_same_thread=False)
-    c = conn.cursor()
-    c.execute("""
-        CREATE TABLE IF NOT EXISTS chat_history (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            context_id TEXT,
-            role TEXT,
-            content TEXT,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-    conn.commit()
+    with _db_lock:
+        c = conn.cursor()
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS chat_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                context_id TEXT,
+                role TEXT,
+                content TEXT,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.commit()
     return conn
 
 
@@ -39,12 +46,13 @@ def get_history(conn: sqlite3.Connection, context_id: str) -> list[tuple[str, st
     Returns:
         List of (role, content) tuples, limited to last 10 entries
     """
-    c = conn.cursor()
-    c.execute(
-        "SELECT role, content FROM chat_history WHERE context_id = ? ORDER BY id ASC LIMIT 10",
-        (context_id,),
-    )
-    return c.fetchall()
+    with _db_lock:
+        c = conn.cursor()
+        c.execute(
+            "SELECT role, content FROM chat_history WHERE context_id = ? ORDER BY id ASC LIMIT 10",
+            (context_id,),
+        )
+        return c.fetchall()
 
 
 def save_interaction(
@@ -61,30 +69,31 @@ def save_interaction(
         user_text: User's input text
         assistant_text: Assistant's response
     """
-    c = conn.cursor()
-    c.execute(
-        "INSERT INTO chat_history (context_id, role, content) VALUES (?, ?, ?)",
-        (context_id, "user", user_text),
-    )
-    c.execute(
-        "INSERT INTO chat_history (context_id, role, content) VALUES (?, ?, ?)",
-        (context_id, "assistant", assistant_text),
-    )
-    conn.commit()
+    with _db_lock:
+        c = conn.cursor()
+        c.execute(
+            "INSERT INTO chat_history (context_id, role, content) VALUES (?, ?, ?)",
+            (context_id, "user", user_text),
+        )
+        c.execute(
+            "INSERT INTO chat_history (context_id, role, content) VALUES (?, ?, ?)",
+            (context_id, "assistant", assistant_text),
+        )
+        conn.commit()
 
-    # Trim old history, keep last 10 entries
-    c.execute(
-        """
-        DELETE FROM chat_history
-        WHERE id NOT IN (
-            SELECT id FROM chat_history
-            WHERE context_id = ?
-            ORDER BY id DESC LIMIT 10
-        ) AND context_id = ?
-    """,
-        (context_id, context_id),
-    )
-    conn.commit()
+        # Trim old history, keep last 10 entries
+        c.execute(
+            """
+            DELETE FROM chat_history
+            WHERE id NOT IN (
+                SELECT id FROM chat_history
+                WHERE context_id = ?
+                ORDER BY id DESC LIMIT 10
+            ) AND context_id = ?
+        """,
+            (context_id, context_id),
+        )
+        conn.commit()
 
 
 def clear_memory(conn: sqlite3.Connection, context_id: str) -> None:
@@ -94,6 +103,8 @@ def clear_memory(conn: sqlite3.Connection, context_id: str) -> None:
         conn: SQLite connection
         context_id: Context identifier
     """
-    c = conn.cursor()
-    c.execute("DELETE FROM chat_history WHERE context_id = ?", (context_id,))
-    conn.commit()
+    with _db_lock:
+        c = conn.cursor()
+        c.execute("DELETE FROM chat_history WHERE context_id = ?", (context_id,))
+        conn.commit()
+
