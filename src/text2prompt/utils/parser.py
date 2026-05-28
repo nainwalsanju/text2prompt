@@ -5,14 +5,23 @@ MODE_IMAGE = "image"
 MODE_CODE = "code"
 MODE_CREATIVE = "creative"
 MODE_ANALYSIS = "analysis"
+MODE_MUSIC = "music"
 
-VALID_MODES = {MODE_GENERAL, MODE_IMAGE, MODE_CODE, MODE_CREATIVE, MODE_ANALYSIS}
+VALID_MODES = {
+    MODE_GENERAL,
+    MODE_IMAGE,
+    MODE_CODE,
+    MODE_CREATIVE,
+    MODE_ANALYSIS,
+    MODE_MUSIC,
+}
 
 MODE_FLAGS = {
     "--image": MODE_IMAGE,
     "--code": MODE_CODE,
     "--creative": MODE_CREATIVE,
     "--analysis": MODE_ANALYSIS,
+    "--music": MODE_MUSIC,
 }
 
 
@@ -37,9 +46,13 @@ def parse_mode_and_text(args: list[str], clipboard_text: str | None = None) -> t
             text = " ".join(args).strip()
     else:
         text = (clipboard_text or "").strip()
-        # Check for /image prefix in clipboard
+        # Check for /image or /music prefix in clipboard
         if text.lower().startswith("/image "):
             mode = MODE_IMAGE
             text = text[7:].strip()
+        elif text.lower().startswith("/music "):
+            mode = MODE_MUSIC
+            text = text[7:].strip()
 
     return mode, text
+

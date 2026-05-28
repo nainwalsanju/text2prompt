@@ -34,12 +34,14 @@ class StatusBarApp(NSObject):
         self.status_item.button().setFont_(NSFont.systemFontOfSize_weight_(16, NSFontWeightMedium))
 
         self.status_item.setToolTip_("text2prompt - AI Prompt Builder")
-        self.status_item.setHighlightMode_(True)
 
         # Use a custom handler to distinguish left and right clicks.
         self._click_handler = StatusItemHandler.alloc().initWithStatusBar_(self)
         self.status_item.button().setTarget_(self._click_handler)
         self.status_item.button().setAction_("handleClick:")
+        self.status_item.button().sendActionOn_(
+            (1 << NSEventTypeLeftMouseUp) | (1 << NSEventTypeRightMouseUp)
+        )
 
     def _setup_menu(self):
         """Create the context menu."""
@@ -68,28 +70,44 @@ class StatusBarApp(NSObject):
         item.setTarget_(NSApp)
 
     def _show_popover(self):
-        """Show the prompt window."""
-        if self.popover is None:
-            from text2prompt.menu.popover import PromptWindow
+        """Show or toggle the prompt window popover."""
+        print("[StatusBarApp] _show_popover called", flush=True)
+        try:
+            if self.popover is None:
+                print("[StatusBarApp] Creating popover...", flush=True)
+                from text2prompt.menu.popover import PromptWindow
 
-            self.popover = PromptWindow.alloc().init()
-            self.popover.setDelegate_(self.delegate)
+                self.popover = PromptWindow.alloc().init()
+                self.popover.setDelegate_(self.delegate)
+                print("[StatusBarApp] Popover created successfully.", flush=True)
 
-        self.popover.show_window()
+            print(f"[StatusBarApp] popover.window.isVisible(): {self.popover.window.isVisible()}, isKeyWindow: {self.popover.window.isKeyWindow()}", flush=True)
+            if self.popover.window.isVisible() and self.popover.window.isKeyWindow():
+                print("[StatusBarApp] Closing popover", flush=True)
+                self.popover.close()
+            else:
+                print("[StatusBarApp] Showing popover window", flush=True)
+                self.popover.show_window()
+        except Exception as e:
+            print(f"[StatusBarApp] Exception in _show_popover: {e}", flush=True)
+
 
     def generatePrompt_(self, sender):
         """Menu action: generate prompt."""
-        self._show_popover()
+        from PyObjCTools import AppHelper
+        AppHelper.callAfter(self._show_popover)
 
     def showHistory_(self, sender):
         """Menu action: show history."""
         if self.delegate:
-            self.delegate.show_history()
+            from PyObjCTools import AppHelper
+            AppHelper.callAfter(self.delegate.show_history)
 
     def showPreferences_(self, sender):
         """Menu action: show preferences."""
         if self.delegate:
-            self.delegate.show_preferences()
+            from PyObjCTools import AppHelper
+            AppHelper.callAfter(self.delegate.show_preferences)
 
 
 class StatusItemHandler(NSObject):
@@ -104,11 +122,26 @@ class StatusItemHandler(NSObject):
 
     def handleClick_(self, sender):
         """Handle click - check event type to distinguish left vs right."""
+        print("[StatusItemHandler] handleClick_ entered", flush=True)
         event = NSApp.currentEvent()
+        print(f"[StatusItemHandler] currentEvent: {event}", flush=True)
+        is_right = False
         if event is not None:
-            if event.type() == NSEventTypeLeftMouseDown:
-                self.status_bar._show_popover()
-            elif event.type() == NSEventTypeRightMouseDown:
-                self.status_bar.menu.popUpMenuPositioningItem_atLocation_inView_(
-                    None, NSEvent.mouseLocation(), None
-                )
+            type_ = event.type()
+            print(f"[StatusItemHandler] event type: {type_}", flush=True)
+            if type_ in (NSEventTypeRightMouseUp, NSEventTypeRightMouseDown):
+                is_right = True
+            elif type_ in (NSEventTypeLeftMouseUp, NSEventTypeLeftMouseDown) and (
+                event.modifierFlags() & NSEventModifierFlagControl
+            ):
+                is_right = True
+
+        print(f"[StatusItemHandler] is_right: {is_right}", flush=True)
+        if is_right:
+            print("[StatusItemHandler] Showing status item menu", flush=True)
+            self.status_bar.status_item.popUpStatusItemMenu_(self.status_bar.menu)
+        else:
+            print("[StatusItemHandler] Directing to _show_popover", flush=True)
+            self.status_bar._show_popover()
+
+

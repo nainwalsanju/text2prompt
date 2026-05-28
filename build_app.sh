@@ -43,11 +43,14 @@ if [ -f "assets/text2prompt.icns" ]; then
     echo "🖼️ Icon added"
 fi
 
+# Determine the Python version inside the venv
+PYVER=$("$VENV/bin/python3" -c 'import sys; print(f"python{sys.version_info.major}.{sys.version_info.minor}")')
+
 # Verify text2prompt is in bundle
-if [ ! -d "$APP_BUNDLE/Contents/Resources/lib/python3.14/text2prompt" ]; then
+if [ ! -d "$APP_BUNDLE/Contents/Resources/lib/$PYVER/text2prompt" ]; then
     SITE_PKG=$(find "$VENV/lib" -name "text2prompt" -type d | head -1)
     if [ -n "$SITE_PKG" ]; then
-        cp -r "$SITE_PKG" "$APP_BUNDLE/Contents/Resources/lib/python3.14/"
+        cp -r "$SITE_PKG" "$APP_BUNDLE/Contents/Resources/lib/$PYVER/"
         echo "📁 Source copied from site-packages"
     fi
 fi

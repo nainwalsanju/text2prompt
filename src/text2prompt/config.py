@@ -2,7 +2,7 @@
 
 import json
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 DEFAULT_DB_PATH = os.path.expanduser("~/.text2prompt/memory.db")
 DEFAULT_PREFS_PATH = os.path.expanduser("~/.text2prompt/preferences.json")
@@ -21,6 +21,8 @@ class Config:
     include_context: bool = True
     save_history: bool = True
     launch_at_login: bool = False
+    redact_sensitive_info: bool = True
+    custom_rules: dict[str, str] = field(default_factory=dict)
 
     def ensure_db_dir(self) -> None:
         """Ensure the parent directory for the database exists."""
@@ -37,11 +39,22 @@ def get_config(
     include_context: bool | None = None,
     save_history: bool | None = None,
     launch_at_login: bool | None = None,
+    redact_sensitive_info: bool | None = None,
+    custom_rules: dict[str, str] | None = None,
 ) -> Config:
-    """Get application configuration with optional overrides."""
+    """Get application configuration with optional overrides.
+
+    Saved preferences are loaded first, then explicit overrides are
+    applied on top so that programmatic callers always win.
+    """
     config = Config()
 
-    # Apply overrides
+    # Load saved preferences first (lowest priority)
+    if prefs_path is not None:
+        config.prefs_path = prefs_path
+    _load_saved_config(config)
+
+    # Apply explicit overrides second (highest priority)
     if db_path is not None:
         config.db_path = db_path
     if prefs_path is not None:
@@ -60,12 +73,13 @@ def get_config(
         config.save_history = save_history
     if launch_at_login is not None:
         config.launch_at_login = launch_at_login
+    if redact_sensitive_info is not None:
+        config.redact_sensitive_info = redact_sensitive_info
+    if custom_rules is not None:
+        config.custom_rules = custom_rules
 
     # Ensure directories exist
     config.ensure_db_dir()
-
-    # Try to load saved preferences
-    _load_saved_config(config)
     return config
 
 
@@ -94,7 +108,10 @@ def save_config(config: Config) -> None:
                 "include_context": config.include_context,
                 "save_history": config.save_history,
                 "launch_at_login": config.launch_at_login,
+                "redact_sensitive_info": config.redact_sensitive_info,
+                "custom_rules": config.custom_rules,
             },
             f,
             indent=2,
         )
+

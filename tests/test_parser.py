@@ -6,6 +6,7 @@ from text2prompt.utils.parser import (
     MODE_CREATIVE,
     MODE_GENERAL,
     MODE_IMAGE,
+    MODE_MUSIC,
     VALID_MODES,
     parse_mode_and_text,
 )
@@ -51,6 +52,21 @@ def test_parse_analysis_mode_flag():
     mode, text = parse_mode_and_text(["--analysis", "analyze this data"])
     assert mode == MODE_ANALYSIS
     assert text == "analyze this data"
+
+
+def test_parse_music_mode_flag():
+    """Parse music mode from --music flag."""
+    mode, text = parse_mode_and_text(["--music", "synthwave drum loop"])
+    assert mode == MODE_MUSIC
+    assert text == "synthwave drum loop"
+
+
+def test_parse_music_mode_prefix():
+    """Parse music mode from /music prefix in clipboard text."""
+    mode, text = parse_mode_and_text([], clipboard_text="/music orchestral intro")
+    assert mode == MODE_MUSIC
+    assert text == "orchestral intro"
+
 
 
 def test_parse_from_clipboard_fallback():

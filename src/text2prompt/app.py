@@ -1,149 +1,114 @@
-"""Main application: Menu bar app with modern UI."""
+"""Main application: Menu bar app with modern UI.
+
+Supports two modes:
+- **CLI mode**: When text arguments are provided, generates a prompt
+  synchronously, prints it to stdout, and exits.
+- **GUI mode**: When launched with no arguments (or ``--gui``), starts
+  a macOS menu bar app with popover, hotkey, and history.
+"""
 
 import sys
 import threading
 
 import pyperclip
-from AppKit import *
-from Foundation import *
-from PyObjCTools import AppHelper
 
 from text2prompt.config import get_config
-from text2prompt.engine.model import ModelEngine
+from text2prompt.engine.model import ModelEngine, ModelError
 from text2prompt.engine.templates import get_registry
 from text2prompt.memory.db import get_history, init_db, save_interaction
-from text2prompt.menu.history import HistoryWindow
-from text2prompt.menu.hotkey import HotkeyManager
-from text2prompt.menu.preferences import PreferencesWindow
-from text2prompt.menu.statusbar import StatusBarApp
 from text2prompt.utils.parser import parse_mode_and_text
 from text2prompt.utils.system import get_active_context
 
-
-class AppDelegate(NSObject):
-    """Application delegate managing the prompt enhancement workflow."""
-
-    def applicationDidFinishLaunching_(self, notification):
-        """Initialize app on launch."""
-        print("text2prompt v2.0 launched", flush=True)
-        NSApp.setActivationPolicy_(NSApplicationActivationPolicyAccessory)
-
-        # Initialize config and database
-        self.config = get_config()
-        self.conn = init_db(self.config.db_path)
-
-        # Initialize engine and templates
-        self.engine = ModelEngine()
-        self.registry = get_registry()
-
-        # Setup status bar
-        self.statusbar = StatusBarApp.alloc().init()
-        self.statusbar.setDelegate_(self)
-
-        # Initialize windows (lazy)
-        self.history_window = None
-        self.preferences_window = None
-
-        # Setup global hotkey (Cmd+Shift+Space)
-        self.hotkey_manager = HotkeyManager.alloc().init()
-        self.hotkey_manager.setDelegate_(self)
-        self.hotkey_manager.start_monitoring()
-
-        # Handle CLI args if provided
-        args = sys.argv[1:]
-        if args:
-            self._handle_cli_args(args)
-
-    def applicationWillTerminate_(self, notification):
-        """Clean up resources on quit."""
-        if self.hotkey_manager:
-            self.hotkey_manager.stop_monitoring()
-        if self.conn:
-            self.conn.close()
-
-    def _handle_cli_args(self, args):
-        """Handle command-line arguments."""
-        mode, text = parse_mode_and_text(args)
-        if text:
-            self.statusbar._show_popover()
-            AppHelper.callAfter(self._fill_and_generate, text, mode)
-
-    def on_hotkey_pressed(self):
-        """Handle global hotkey press."""
-        AppHelper.callAfter(self.statusbar._show_popover)
-
-    def _fill_and_generate(self, text, mode):
-        """Fill input and trigger generation."""
-        if hasattr(self.statusbar, "popover") and self.statusbar.popover:
-            popover = self.statusbar.popover
-            popover.input_field.setStringValue_(text)
-            modes = ["general", "image", "code", "creative", "analysis"]
-            if mode in modes:
-                popover.mode_selector.setSelectedSegment_(modes.index(mode))
-            popover.handleGenerate_(None)
-
-    def generate_prompt(self, input_text, mode, popover):
-        """Generate prompt in background thread."""
-
-        def do_generate():
-            try:
-                is_available, reason = self.engine.check_availability()
-                if not is_available:
-                    AppHelper.callAfter(
-                        lambda: popover.showError_("Model not available: " + reason)
-                    )
-                    return
-
-                base_context = get_active_context() if self.config.include_context else "standalone"
-                context_id = base_context + ":" + mode
-                history = get_history(self.conn, context_id)
-
-                full_prompt = self.registry.format_prompt(history, input_text, mode)
-
-                print("Generating response...", flush=True)
-                response = self.engine.generate_response(full_prompt)
-                enhanced_text = response.strip()
-                print("Response generated!", flush=True)
-
-                if self.config.save_history:
-                    save_interaction(self.conn, context_id, input_text, enhanced_text)
-
-                if self.config.auto_copy:
-                    AppHelper.callAfter(self._auto_copy, enhanced_text)
-
-                AppHelper.callAfter(lambda: popover.updateOutput_(enhanced_text))
-
-            except Exception as e:
-                print("Exception: " + str(e), flush=True)
-                AppHelper.callAfter(lambda: popover.showError_(str(e)))
-
-        thread = threading.Thread(target=do_generate, daemon=True)
-        thread.start()
-
-    def _auto_copy(self, text):
-        """Auto-copy text to clipboard."""
-        pyperclip.copy(text)
-
-    def show_history(self):
-        """Show prompt history."""
-        if self.history_window is None:
-            self.history_window = HistoryWindow.alloc().init()
-            self.history_window.setConnection_(self.conn)
-        self.history_window.show()
-
-    def show_preferences(self):
-        """Show preferences panel."""
-        if self.preferences_window is None:
-            self.preferences_window = PreferencesWindow.alloc().init()
-        self.preferences_window.show()
+# Separator between context prefix and mode in context_id.
+# Using ``|`` avoids ambiguity with the ``::`` inside the app/window prefix.
+MODE_SEPARATOR = "|"
 
 
-def run_app(args):
-    """Run the application."""
-    sys.argv = [sys.argv[0]] + args
+# ---------------------------------------------------------------------------
+# CLI mode
+# ---------------------------------------------------------------------------
 
-    app = NSApplication.sharedApplication()
-    delegate = AppDelegate.alloc().init()
-    app.setDelegate_(delegate)
+def run_cli(text: str, mode: str) -> None:
+    """Run in CLI mode — generate, print, exit.
 
-    AppHelper.runEventLoop()
+    Args:
+        text: The raw idea text from the user.
+        mode: Prompt mode (general, image, code, creative, analysis).
+    """
+    config = get_config()
+    engine = ModelEngine()
+    registry = get_registry()
+
+    is_available, reason = engine.check_availability()
+    if not is_available:
+        print(f"Error: Model not available — {reason}", file=sys.stderr)
+        sys.exit(1)
+
+    conn = init_db(config.db_path)
+    context_id = f"cli{MODE_SEPARATOR}{mode}"
+    history = get_history(conn, context_id)
+    
+    custom_rule = config.custom_rules.get(mode, "") if config.custom_rules else ""
+    full_prompt = registry.format_prompt(history, text, mode, custom_rule)
+
+    try:
+        response = engine.generate_response(full_prompt)
+        if config.redact_sensitive_info:
+            from text2prompt.utils.redactor import redact_text
+            response = redact_text(response)
+    except ModelError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        conn.close()
+        sys.exit(1)
+
+    print(response)
+
+    if config.auto_copy:
+        pyperclip.copy(response)
+    if config.save_history:
+        save_interaction(conn, context_id, text, response)
+    conn.close()
+
+
+# ---------------------------------------------------------------------------
+# GUI mode
+# ---------------------------------------------------------------------------
+
+def run_gui(args: list[str]) -> None:
+    """Run as macOS menu bar application.
+
+    Args:
+        args: CLI arguments to forward into the GUI.
+
+    The GUI module is imported lazily so that CLI mode never
+    touches Cocoa / PyObjC.
+    """
+    from text2prompt.gui import start_gui
+
+    start_gui(args)
+
+
+# ---------------------------------------------------------------------------
+# Entry dispatcher
+# ---------------------------------------------------------------------------
+
+def run_app(args: list[str]) -> None:
+    """Dispatch to CLI or GUI mode.
+
+    Args:
+        args: CLI arguments (sys.argv[1:]).
+    """
+    # Explicit --gui flag always opens the menu bar app
+    if "--gui" in args:
+        gui_args = [a for a in args if a != "--gui"]
+        run_gui(gui_args)
+        return
+
+    mode, text = parse_mode_and_text(args)
+
+    if text:
+        # Text provided → fast CLI path (no Cocoa event loop)
+        run_cli(text, mode)
+    else:
+        # No text → launch menu bar app
+        run_gui(args)
